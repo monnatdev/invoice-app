@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Trash2, Mail, Phone, MapPin } from 'lucide-react';
 import { getClients, saveClients } from '@/lib/mockData';
 import { useState, useEffect } from 'react';
+import { Edit2 } from 'lucide-react';
+
 
 export default function ClientDetailPage() {
   const params = useParams();
@@ -49,6 +51,13 @@ export default function ClientDetailPage() {
           <h1 className="text-3xl font-bold text-slate-900">{client.name}</h1>
         </div>
         <div className="flex gap-2">
+          <Link
+            href={`/dashboard/clients/${params.id}/edit`}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
+          >
+            <Edit2 size={18} />
+            Edit
+          </Link>
           <button onClick={handleDelete} className="flex items-center gap-2 px-4 py-2.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition">
             <Trash2 size={18} />
             Delete

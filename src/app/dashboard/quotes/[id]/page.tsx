@@ -7,6 +7,7 @@ import { getQuotes, saveQuotes, getInvoices, saveInvoices } from '@/lib/mockData
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/formatters';
 import { useState, useEffect } from 'react';
 import { generatePDF } from '@/lib/pdfGenerator';
+import { Edit2 } from 'lucide-react';
 
 export default function QuoteDetailPage() {
   const params = useParams();
@@ -90,6 +91,13 @@ export default function QuoteDetailPage() {
             <ArrowRight size={18} />
             Convert to Invoice
           </button>
+          <Link
+            href={`/dashboard/quotes/${params.id}/edit`}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
+          >
+            <Edit2 size={18} />
+            Edit
+          </Link>
           <button 
             onClick={() => generatePDF(quote, 'quote')}
             className="flex items-center gap-2 px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"

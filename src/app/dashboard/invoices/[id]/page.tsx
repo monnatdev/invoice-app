@@ -7,6 +7,8 @@ import { getInvoices, saveInvoices } from '@/lib/mockData';
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/formatters';
 import { useState, useEffect } from 'react';
 import { generatePDF } from '@/lib/pdfGenerator';
+import { Edit2 } from 'lucide-react';
+
 
 export default function InvoiceDetailPage() {
   const params = useParams();
@@ -66,6 +68,13 @@ export default function InvoiceDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Link
+            href={`/dashboard/invoices/${params.id}/edit`}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
+          >
+            <Edit2 size={18} />
+            Edit
+          </Link>
           <button 
             onClick={() => generatePDF(invoice, 'invoice')}
             className="flex items-center gap-2 px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
@@ -73,7 +82,10 @@ export default function InvoiceDetailPage() {
             <Download size={18} />
             Download PDF
           </button>
-          <button onClick={handleDelete} className="flex items-center gap-2 px-4 py-2.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition">
+          <button
+            onClick={handleDelete}
+            className="flex items-center gap-2 px-4 py-2.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
+          >
             <Trash2 size={18} />
             Delete
           </button>
