@@ -1,103 +1,119 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { Menu, X, FileText } from 'lucide-react';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-slate-200 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="bg-blue-500 text-white rounded p-1.5">
+              <FileText size={24} />
+            </div>
+            <span className="text-2xl font-bold text-slate-900">INVOICE</span>
+          </div>
+
+          <div className="hidden md:flex items-center gap-8">
+            <button className="text-slate-600 hover:text-slate-900 transition">
+              Features
+            </button>
+            <button className="text-slate-600 hover:text-slate-900 transition">
+              Pricing
+            </button>
+            <button className="text-slate-600 hover:text-slate-900 transition">
+              About
+            </button>
+            <Link
+              href="/auth/signin"
+              className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 transition"
+            >
+              Sign in
+            </Link>
+          </div>
+
+          <button
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-slate-200 bg-white">
+            <div className="px-4 py-4 space-y-3">
+              <button className="block text-slate-600 hover:text-slate-900 w-full text-left">
+                Features
+              </button>
+              <button className="block text-slate-600 hover:text-slate-900 w-full text-left">
+                Pricing
+              </button>
+              <button className="block text-slate-600 hover:text-slate-900 w-full text-left">
+                About
+              </button>
+              <Link
+                href="/auth/signin"
+                className="block w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 transition text-center"
+              >
+                Sign in
+              </Link>
+            </div>
+          </div>
+        )}
+      </nav>
+
+      {/* Hero Section */}
+      <div className="pt-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+        <div>
+          <h1 className="text-5xl sm:text-6xl font-bold text-slate-900 mb-6">
+            Quickly create quotes and invoices
+          </h1>
+          <p className="text-lg text-slate-600 mb-8">
+            A simple invoicing solution designed for freelancers. Create
+            professional quotes and invoices in minutes.
+          </p>
+          <Link href="/auth/signup">
+            <button className="px-8 py-4 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition shadow-lg hover:shadow-xl">
+              Get started for free
+            </button>
+          </Link>
+        </div>
+
+        {/* Sign Up Preview */}
+        <div className="bg-white rounded-xl shadow-xl p-8">
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">Sign up</h2>
+          <div className="space-y-4">
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full px-4 py-3 border border-slate-300 rounded-lg bg-slate-50 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full px-4 py-3 border border-slate-300 rounded-lg bg-slate-50 focus:outline-none focus:border-blue-500 focus:bg-white transition"
+            />
+            <Link href="/auth/signup">
+              <button className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition">
+                Sign up
+              </button>
+            </Link>
+          </div>
+          <p className="text-center text-slate-600 mt-4">
+            Already have an account?{' '}
+            <Link href="/auth/signin" className="text-blue-600 hover:underline">
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
