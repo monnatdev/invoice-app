@@ -5,6 +5,8 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getClients, getQuotes, saveQuotes } from '@/lib/mockData';
+import TemplateSelector from '@/components/common/TemplateSelector';
+import { TemplateType } from '@/lib/invoiceTemplates';
 
 export default function EditQuotePage() {
   const router = useRouter();
@@ -16,6 +18,8 @@ export default function EditQuotePage() {
     expiryDate: '',
     items: [{ description: '', quantity: 1, rate: 0 }],
   });
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('modern');
+
 
   useEffect(() => {
     const quotes = getQuotes();
@@ -26,6 +30,7 @@ export default function EditQuotePage() {
         expiryDate: quote.expiryDate,
         items: quote.items,
       });
+      setSelectedTemplate(quote.template || 'modern');  // ← เพิ่ม
     }
     setLoading(false);
   }, [params.id]);
@@ -45,9 +50,11 @@ export default function EditQuotePage() {
             amount: total,
             expiryDate: formData.expiryDate,
             items: formData.items,
+            template: selectedTemplate,  // ← เพิ่ม
           }
         : q
     );
+    
     
     saveQuotes(updatedQuotes);
     alert('Quote updated successfully!');
@@ -173,6 +180,13 @@ export default function EditQuotePage() {
             <span className="text-slate-700 font-medium">Total:</span>
             <span className="text-2xl font-bold text-slate-900">฿ {total.toLocaleString()}</span>
           </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow p-6">
+          <TemplateSelector
+            selected={selectedTemplate}
+            onChange={setSelectedTemplate}
+          />
         </div>
 
         <div className="flex gap-4">
