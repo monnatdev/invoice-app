@@ -8,12 +8,15 @@ import { formatCurrency, formatDate, getStatusColor } from '@/lib/formatters';
 import { useState, useEffect } from 'react';
 import { generatePDF } from '@/lib/pdfGenerator';
 import { Edit2 } from 'lucide-react';
+import { Mail } from 'lucide-react';
+import EmailModal from '@/components/common/EmailModal';
 
 export default function QuoteDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [quote, setQuote] = useState<any>(null);
   const [status, setStatus] = useState('draft');
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   useEffect(() => {
     const quotes = getQuotes();
@@ -86,8 +89,18 @@ export default function QuoteDetailPage() {
             <p className="text-slate-600 text-sm">Created on {formatDate(quote.createdAt)}</p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <button onClick={handleConvertToInvoice} className="flex items-center gap-2 px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setShowEmailModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+          >
+            <Mail size={18} />
+            Send Email
+          </button>
+          <button 
+            onClick={handleConvertToInvoice} 
+            className="flex items-center gap-2 px-4 py-2.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition"
+          >
             <ArrowRight size={18} />
             Convert to Invoice
           </button>
@@ -105,7 +118,10 @@ export default function QuoteDetailPage() {
             <Download size={18} />
             Download PDF
           </button>
-          <button onClick={handleDelete} className="flex items-center gap-2 px-4 py-2.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition">
+          <button 
+            onClick={handleDelete} 
+            className="flex items-center gap-2 px-4 py-2.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
+          >
             <Trash2 size={18} />
             Delete
           </button>
@@ -181,6 +197,13 @@ export default function QuoteDetailPage() {
           </div>
         </div>
       </div>
+      {/* Email Modal */}
+        <EmailModal
+          isOpen={showEmailModal}
+          onClose={() => setShowEmailModal(false)}
+          type="quote"
+          data={quote}
+        />
     </div>
   );
 }

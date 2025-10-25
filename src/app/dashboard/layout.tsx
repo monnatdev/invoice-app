@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { LogOut, FileText, Users, BarChart3, Menu, X } from 'lucide-react';
+import { Mail } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -106,6 +107,18 @@ export default function DashboardLayout({
           >
             <Users size={20} />
             Clients
+          </Link>
+          <Link
+            href="/dashboard/emails"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+              pathname === '/dashboard/emails'
+                ? 'bg-blue-50 text-blue-700 font-medium'
+                : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <Mail size={20} />
+            Email Logs
           </Link>
         </nav>
 

@@ -8,6 +8,8 @@ import { formatCurrency, formatDate, getStatusColor } from '@/lib/formatters';
 import { useState, useEffect } from 'react';
 import { generatePDF } from '@/lib/pdfGenerator';
 import { Edit2 } from 'lucide-react';
+import { Mail } from 'lucide-react';
+import EmailModal from '@/components/common/EmailModal';
 
 
 export default function InvoiceDetailPage() {
@@ -15,6 +17,7 @@ export default function InvoiceDetailPage() {
   const router = useRouter();
   const [invoice, setInvoice] = useState<any>(null);
   const [status, setStatus] = useState('draft');
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   useEffect(() => {
     const invoices = getInvoices();
@@ -67,7 +70,14 @@ export default function InvoiceDetailPage() {
             <p className="text-slate-600 text-sm">Created on {formatDate(invoice.createdAt)}</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setShowEmailModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+          >
+            <Mail size={18} />
+            Send Email
+          </button>
           <Link
             href={`/dashboard/invoices/${params.id}/edit`}
             className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
@@ -161,6 +171,13 @@ export default function InvoiceDetailPage() {
           </div>
         </div>
       </div>
+      {/* Email Modal */}
+        <EmailModal
+          isOpen={showEmailModal}
+          onClose={() => setShowEmailModal(false)}
+          type="invoice"
+          data={invoice}
+        />
     </div>
   );
 }
