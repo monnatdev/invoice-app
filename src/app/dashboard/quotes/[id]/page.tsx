@@ -10,6 +10,8 @@ import { generatePDF } from '@/lib/pdfGenerator';
 import { Edit2 } from 'lucide-react';
 import { Mail } from 'lucide-react';
 import EmailModal from '@/components/common/EmailModal';
+import { Eye } from 'lucide-react';
+import TemplatePreviewModal from '@/components/common/TemplatePreviewModal';
 
 export default function QuoteDetailPage() {
   const params = useParams();
@@ -17,6 +19,8 @@ export default function QuoteDetailPage() {
   const [quote, setQuote] = useState<any>(null);
   const [status, setStatus] = useState('draft');
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
 
   useEffect(() => {
     const quotes = getQuotes();
@@ -112,11 +116,18 @@ export default function QuoteDetailPage() {
             Edit
           </Link>
           <button 
-            onClick={() => generatePDF(quote, 'quote')}
+            onClick={() => generatePDF(quote, 'quote', quote.template || 'modern')}
             className="flex items-center gap-2 px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
           >
             <Download size={18} />
             Download PDF
+          </button>
+          <button
+            onClick={() => setShowPreview(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition"
+          >
+            <Eye size={18} />
+            Preview
           </button>
           <button 
             onClick={handleDelete} 
@@ -197,6 +208,13 @@ export default function QuoteDetailPage() {
           </div>
         </div>
       </div>
+      <TemplatePreviewModal
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        data={quote}
+        type="quote"
+        template={quote.template || 'modern'}
+      />
       {/* Email Modal */}
         <EmailModal
           isOpen={showEmailModal}
@@ -204,6 +222,12 @@ export default function QuoteDetailPage() {
           type="quote"
           data={quote}
         />
+        <div className="bg-white rounded-xl shadow p-6">
+          <h3 className="text-sm font-medium text-slate-700 mb-2">Template</h3>
+          <p className="text-lg font-bold text-slate-900 capitalize">
+            {quote.template || 'Modern'}
+          </p>
+        </div>
     </div>
   );
 }

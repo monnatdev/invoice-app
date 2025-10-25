@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getClients, getQuotes, saveQuotes } from '@/lib/mockData';
+import TemplateSelector from '@/components/common/TemplateSelector';
+import { TemplateType } from '@/lib/invoiceTemplates';
 
 export default function CreateQuotePage() {
   const router = useRouter();
@@ -14,6 +16,8 @@ export default function CreateQuotePage() {
     expiryDate: '',
     items: [{ description: '', quantity: 1, rate: 0 }],
   });
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('modern');
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,8 +35,9 @@ export default function CreateQuotePage() {
       status: 'draft',
       items: formData.items,
       createdAt: new Date().toISOString(),
+      template: selectedTemplate,  // ← เพิ่ม
     };
-    
+
     const updated = [...quotes, newQuote];
     saveQuotes(updated);
     
@@ -138,6 +143,13 @@ export default function CreateQuotePage() {
             <span className="text-slate-700 font-medium">Total:</span>
             <span className="text-2xl font-bold text-slate-900">฿ {total.toLocaleString()}</span>
           </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow p-6">
+          <TemplateSelector
+            selected={selectedTemplate}
+            onChange={setSelectedTemplate}
+          />
         </div>
 
         <div className="flex gap-4">

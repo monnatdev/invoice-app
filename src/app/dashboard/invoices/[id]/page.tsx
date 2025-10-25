@@ -10,6 +10,9 @@ import { generatePDF } from '@/lib/pdfGenerator';
 import { Edit2 } from 'lucide-react';
 import { Mail } from 'lucide-react';
 import EmailModal from '@/components/common/EmailModal';
+import { Eye } from 'lucide-react';
+import TemplatePreviewModal from '@/components/common/TemplatePreviewModal';
+import { TemplateType } from '@/lib/invoiceTemplates';
 
 
 export default function InvoiceDetailPage() {
@@ -18,6 +21,7 @@ export default function InvoiceDetailPage() {
   const [invoice, setInvoice] = useState<any>(null);
   const [status, setStatus] = useState('draft');
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     const invoices = getInvoices();
@@ -86,11 +90,18 @@ export default function InvoiceDetailPage() {
             Edit
           </Link>
           <button 
-            onClick={() => generatePDF(invoice, 'invoice')}
+            onClick={() => generatePDF(invoice, 'invoice', invoice.template || 'modern')}
             className="flex items-center gap-2 px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
           >
             <Download size={18} />
             Download PDF
+          </button>
+          <button
+            onClick={() => setShowPreview(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition"
+          >
+            <Eye size={18} />
+            Preview
           </button>
           <button
             onClick={handleDelete}
@@ -170,6 +181,13 @@ export default function InvoiceDetailPage() {
             <p className="text-lg font-bold text-slate-900">{formatDate(invoice.dueDate)}</p>
           </div>
         </div>
+        <TemplatePreviewModal
+            isOpen={showPreview}
+            onClose={() => setShowPreview(false)}
+            data={invoice}
+            type="invoice"
+            template={invoice.template || 'modern'}
+          />
       </div>
       {/* Email Modal */}
         <EmailModal
@@ -178,6 +196,13 @@ export default function InvoiceDetailPage() {
           type="invoice"
           data={invoice}
         />
+        <div className="bg-white rounded-xl shadow p-6">
+          <h3 className="text-sm font-medium text-slate-700 mb-2">Template</h3>
+          <p className="text-lg font-bold text-slate-900 capitalize">
+            {invoice.template || 'Modern'}
+          </p>
+        </div>
     </div>
+    
   );
 }
