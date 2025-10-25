@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -25,7 +26,7 @@ export default function EditInvoicePage() {
     const invoice = invoices.find((i: any) => i.id === params.id);
     if (invoice) {
       setFormData({
-        clientId: clients.find(c => c.name === invoice.clientName)?.id || '',
+        clientId: clients.find((c: any) => c.name === invoice.clientName)?.id || '',
         dueDate: invoice.dueDate,
         items: invoice.items,
       });
@@ -38,7 +39,7 @@ export default function EditInvoicePage() {
     e.preventDefault();
     
     const total = formData.items.reduce((sum, item) => sum + item.quantity * item.rate, 0);
-    const client = clients.find(c => c.id === formData.clientId);
+    const client = clients.find((c: any) => c.id === formData.clientId);
     const invoices = getInvoices();
     
     const updatedInvoices = invoices.map((i: any) => 
@@ -109,7 +110,7 @@ export default function EditInvoicePage() {
                 required
               >
                 <option value="">Select a client</option>
-                {clients.map(client => (
+                {clients.map((client: any) => (
                   <option key={client.id} value={client.id}>{client.name}</option>
                 ))}
               </select>

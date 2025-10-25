@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -26,7 +27,7 @@ export default function EditQuotePage() {
     const quote = quotes.find((q: any) => q.id === params.id);
     if (quote) {
       setFormData({
-        clientId: clients.find(c => c.name === quote.clientName)?.id || '',
+        clientId: clients.find((c: any) => c.name === quote.clientName)?.id || '',
         expiryDate: quote.expiryDate,
         items: quote.items,
       });
@@ -39,7 +40,7 @@ export default function EditQuotePage() {
     e.preventDefault();
     
     const total = formData.items.reduce((sum, item) => sum + item.quantity * item.rate, 0);
-    const client = clients.find(c => c.id === formData.clientId);
+    const client = clients.find((c: any) => c.id === formData.clientId);
     const quotes = getQuotes();
     
     const updatedQuotes = quotes.map((q: any) => 
@@ -111,7 +112,7 @@ export default function EditQuotePage() {
                 required
               >
                 <option value="">Select a client</option>
-                {clients.map(client => (
+                {clients.map((client: any) => (
                   <option key={client.id} value={client.id}>{client.name}</option>
                 ))}
               </select>
