@@ -3,31 +3,87 @@
 import Link from 'next/link';
 import { Plus, Trash2, Mail, Phone, MapPin, Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { getClients, saveClients } from '@/lib/mockData';
+import { useRouter } from 'next/navigation';
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<any[]>([]);
   const [filteredClients, setFilteredClients] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   const itemsPerPage = 9; // 3x3 grid
+  const router = useRouter();
 
   useEffect(() => {
-    setClients(getClients());
+    fetchClients();
   }, []);
+
+  const fetchClients = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('You need to sign in first');
+        router.push('/auth/signin');
+        return;
+      }
+
+      const response = await fetch('/api/clients', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        alert('Session expired. Please sign in again.');
+        localStorage.removeItem('token');
+        router.push('/auth/signin');
+        return;
+      }
+
+      const data = await response.json();
+      setClients(data);
+    } catch (error) {
+      console.error('Failed to fetch clients:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteClient = async (id: string) => {
+    if (!confirm('Are you sure?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/clients?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.status === 401) {
+        alert('Unauthorized or session expired.');
+        router.push('/auth/signin');
+        return;
+      }
+
+      fetchClients();
+    } catch (error) {
+      console.error('Failed to delete client:', error);
+    }
+  };
 
   // Search Logic
   useEffect(() => {
     let filtered = [...clients];
-
     if (searchTerm) {
-      filtered = filtered.filter(client => 
-        client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.phone.includes(searchTerm)
+      filtered = filtered.filter(
+        (client) =>
+          client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          client.phone?.includes(searchTerm)
       );
     }
-
     setFilteredClients(filtered);
     setCurrentPage(1);
   }, [clients, searchTerm]);
@@ -39,11 +95,7 @@ export default function ClientsPage() {
   const currentClients = filteredClients.slice(startIndex, endIndex);
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure?')) {
-      const updated = clients.filter(c => c.id !== id);
-      setClients(updated);
-      saveClients(updated);
-    }
+    deleteClient(id);
   };
 
   const handlePageChange = (page: number) => {
@@ -83,11 +135,15 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      {/* Grid */}
-      {currentClients.length === 0 ? (
+      {/* Loading */}
+      {loading ? (
+        <div className="bg-white rounded-xl shadow p-12 text-center text-slate-600">
+          Loading clients...
+        </div>
+      ) : currentClients.length === 0 ? (
         <div className="bg-white rounded-xl shadow p-12 text-center">
           <p className="text-slate-600 mb-4">
-            {searchTerm 
+            {searchTerm
               ? 'No clients found matching your search'
               : 'No clients yet'}
           </p>
@@ -103,8 +159,11 @@ export default function ClientsPage() {
       ) : (
         <>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {currentClients.map(client => (
-              <div key={client.id} className="bg-white rounded-xl shadow p-6 hover:shadow-lg transition">
+            {currentClients.map((client) => (
+              <div
+                key={client.id}
+                className="bg-white rounded-xl shadow p-6 hover:shadow-lg transition"
+              >
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-lg font-bold text-slate-900">{client.name}</h3>
                   <button
@@ -118,18 +177,27 @@ export default function ClientsPage() {
                 <div className="space-y-2 text-sm text-slate-600">
                   <div className="flex items-center gap-2">
                     <Mail size={16} className="text-blue-500" />
-                    <a href={`mailto:${client.email}`} className="hover:text-blue-600 truncate">
+                    <a
+                      href={`mailto:${client.email}`}
+                      className="hover:text-blue-600 truncate"
+                    >
                       {client.email}
                     </a>
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone size={16} className="text-blue-500" />
-                    <a href={`tel:${client.phone}`} className="hover:text-blue-600">
+                    <a
+                      href={`tel:${client.phone}`}
+                      className="hover:text-blue-600"
+                    >
                       {client.phone}
                     </a>
                   </div>
                   <div className="flex items-start gap-2">
-                    <MapPin size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
+                    <MapPin
+                      size={16}
+                      className="text-blue-500 mt-0.5 flex-shrink-0"
+                    />
                     <span className="line-clamp-2">{client.address}</span>
                   </div>
                 </div>
@@ -159,22 +227,24 @@ export default function ClientsPage() {
                   >
                     Previous
                   </button>
-                  
+
                   {/* Page Numbers */}
                   <div className="hidden md:flex gap-2">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                          currentPage === page
-                            ? 'bg-blue-500 text-white'
-                            : 'border border-slate-300 text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (page) => (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                            currentPage === page
+                              ? 'bg-blue-500 text-white'
+                              : 'border border-slate-300 text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    )}
                   </div>
 
                   <button

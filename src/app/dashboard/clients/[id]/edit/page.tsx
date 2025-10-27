@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { getClients, saveClients } from '@/lib/mockData';
 
 export default function EditClientPage() {
   const router = useRouter();
   const params = useParams();
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,25 +18,52 @@ export default function EditClientPage() {
   });
 
   useEffect(() => {
-    const clients = getClients();
-    const client = clients.find((c: any) => c.id === params.id);
-    if (client) {
-      setFormData(client);
-    }
-    setLoading(false);
+    fetchClient();
   }, [params.id]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fetchClient = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/clients?id=${params.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error('Failed to fetch client');
+      const data = await res.json();
+      setFormData(data);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to load client data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const clients = getClients();
-    const updatedClients = clients.map((c: any) => 
-      c.id === params.id ? { ...c, ...formData } : c
-    );
-    
-    saveClients(updatedClients);
-    alert('Client updated successfully!');
-    router.push(`/dashboard/clients/${params.id}`);
+    setSubmitting(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/clients?id=${params.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) throw new Error('Update failed');
+      alert('Client updated successfully!');
+      router.push(`/dashboard/clients/${params.id}`);
+    } catch (err) {
+      console.error(err);
+      alert('Error updating client.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -111,10 +138,22 @@ export default function EditClientPage() {
         </div>
 
         <div className="flex gap-4">
-          <button type="submit" className="flex-1 px-4 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition">
-            Update Client
+          <button
+            type="submit"
+            disabled={submitting}
+            className={`flex-1 px-4 py-3 rounded-lg font-medium transition ${
+              submitting
+                ? 'bg-blue-300 text-white cursor-not-allowed'
+                : 'bg-blue-500 text-white hover:bg-blue-600'
+            }`}
+          >
+            {submitting ? 'Updating...' : 'Update Client'}
           </button>
-          <Link href={`/dashboard/clients/${params.id}`} className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition text-center">
+
+          <Link
+            href={`/dashboard/clients/${params.id}`}
+            className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition text-center"
+          >
             Cancel
           </Link>
         </div>

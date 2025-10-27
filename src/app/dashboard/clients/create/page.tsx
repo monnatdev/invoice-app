@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { getClients, saveClients } from '@/lib/mockData';
 
 export default function CreateClientPage() {
   const router = useRouter();
@@ -15,31 +14,55 @@ export default function CreateClientPage() {
     address: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const clients = getClients();
-    const newClient = {
-      id: String(Date.now()),
-      ...formData,
-    };
-    
-    const updated = [...clients, newClient];
-    saveClients(updated);
-    
-    alert('Client created successfully!');
-    router.push('/dashboard/clients');
+
+    const token = localStorage.getItem('token'); // ✅ ดึง token ที่ได้จากตอน login/signup
+
+    if (!token) {
+      alert('You are not logged in. Please sign in first.');
+      router.push('/signin');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/clients', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // ✅ เพิ่ม header
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        alert(error.error || 'Failed to create client');
+        return;
+      }
+
+      alert('Client created successfully!');
+      router.push('/dashboard/clients');
+    } catch (err) {
+      console.error('Error creating client:', err);
+      alert('Something went wrong');
+    }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Link href="/dashboard/clients" className="p-2 hover:bg-slate-100 rounded">
+        <Link
+          href="/dashboard/clients"
+          className="p-2 hover:bg-slate-100 rounded"
+        >
           <ArrowLeft size={20} />
         </Link>
         <h1 className="text-3xl font-bold text-slate-900">Add New Client</h1>
@@ -49,7 +72,9 @@ export default function CreateClientPage() {
         <div className="bg-white rounded-xl shadow p-6">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Client Name</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Client Name
+              </label>
               <input
                 type="text"
                 name="name"
@@ -61,7 +86,9 @@ export default function CreateClientPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Email
+              </label>
               <input
                 type="email"
                 name="email"
@@ -73,7 +100,9 @@ export default function CreateClientPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Phone</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Phone
+              </label>
               <input
                 type="tel"
                 name="phone"
@@ -85,7 +114,9 @@ export default function CreateClientPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Address</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Address
+              </label>
               <textarea
                 name="address"
                 value={formData.address}
@@ -99,10 +130,16 @@ export default function CreateClientPage() {
         </div>
 
         <div className="flex gap-4">
-          <button type="submit" className="flex-1 px-4 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition">
+          <button
+            type="submit"
+            className="flex-1 px-4 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition"
+          >
             Create Client
           </button>
-          <Link href="/dashboard/clients" className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition text-center">
+          <Link
+            href="/dashboard/clients"
+            className="flex-1 px-4 py-3 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition text-center"
+          >
             Cancel
           </Link>
         </div>

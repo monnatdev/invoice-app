@@ -1,18 +1,29 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import { getInvoices, getQuotes } from '@/lib/mockData';
 
 export default function DashboardPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [quotes, setQuotes] = useState<any[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
-    setInvoices(getInvoices());
-    setQuotes(getQuotes());
-  }, []);
+    const token = localStorage.getItem('token');
+    console.log(token,"token")
+    console.log('xxxx')
+    if (!token) {
+      console.warn("No token found, redirecting to sign-in");
+      router.push('/auth/signin');
+    } else {
+      console.log("Token found, loading dashboard");
+      setInvoices(getInvoices());
+      setQuotes(getQuotes());
+    }
+  }, [router]);
 
   const overdueInvoices = invoices.filter(i => i.status === 'overdue');
   const totalOverdue = overdueInvoices.reduce((sum, i) => sum + i.amount, 0);

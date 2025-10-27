@@ -11,15 +11,25 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       alert('Passwords do not match');
       return;
     }
-    if (email && password) {
-      localStorage.setItem('user', JSON.stringify({ email }));
+    console.log('signup pathname');
+    const response = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (response.ok) {
+      const { token } = await response.json();
+      localStorage.setItem('token', token);
       router.push('/dashboard');
+    } else {
+      alert('Signup failed');
     }
   };
 

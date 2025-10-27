@@ -10,12 +10,23 @@ export default function SigninPage() {
   const [password, setPassword] = useState('');
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple auth - ยังไม่มี backend
-    if (email && password) {
-      localStorage.setItem('user', JSON.stringify({ email }));
+    console.log("Submitting sign-in form");
+    const response = await fetch('/api/auth/signin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    console.log(response,"response")
+    if (response.ok) {
+      const { token } = await response.json();
+      console.log("Sign-in successful, token:", token);
+      localStorage.setItem('token', token);
       router.push('/dashboard');
+    } else {
+      console.error("Sign-in failed");
+      alert('Signin failed');
     }
   };
 

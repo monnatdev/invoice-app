@@ -1,17 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { getClients, getInvoices, saveInvoices } from '@/lib/mockData';
 import TemplateSelector from '@/components/common/TemplateSelector';
 import { TemplateType } from '@/lib/invoiceTemplates';
 
 export default function CreateInvoicePage() {
   const router = useRouter();
-  const clients = getClients();
+  const [clients, setClients] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     clientId: '',
     dueDate: '',
@@ -19,30 +18,39 @@ export default function CreateInvoicePage() {
   });
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('modern');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const total = formData.items.reduce((sum, item) => sum + item.quantity * item.rate, 0);
-    const client = clients.find((c: any) => c.id === formData.clientId);
-    const invoices = getInvoices();
-    
-    const newInvoice = {
-      id: String(Date.now()),
-      number: `INV-${String(invoices.length + 1).padStart(3, '0')}`,
-      clientName: client?.name || 'Unknown',
-      amount: total,
-      dueDate: formData.dueDate,
-      status: 'draft',
-      items: formData.items,
-      createdAt: new Date().toISOString(),
-      template: selectedTemplate,  // ← เพิ่มบรรทัดนี้
+  useEffect(() => {
+    // Fetch clients from API
+    const fetchClients = async () => {
+      const response = await fetch('/api/clients');
+      const data = await response.json();
+      setClients(data);
     };
-    
-    const updated = [...invoices, newInvoice];
-    saveInvoices(updated);
-    
-    alert('Invoice created successfully!');
-    router.push('/dashboard/invoices');
+    fetchClients();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const total = formData.items.reduce((sum, item) => sum + item.quantity * item.rate, 0);
+    const newInvoice = {
+      clientId: formData.clientId,
+      dueDate: formData.dueDate,
+      items: formData.items,
+      amount: total,
+      status: 'draft',
+      template: selectedTemplate,
+    };
+
+    const response = await fetch('/api/invoices', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newInvoice),
+    });
+
+    if (response.ok) {
+      alert('Invoice created successfully!');
+      router.push('/dashboard/invoices');
+    }
   };
 
   const handleItemChange = (index: number, field: string, value: any) => {

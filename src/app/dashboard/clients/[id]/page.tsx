@@ -2,24 +2,88 @@
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Trash2, Mail, Phone, MapPin } from 'lucide-react';
-import { getClients, saveClients } from '@/lib/mockData';
+import { ArrowLeft, Trash2, Mail, Phone, MapPin, Edit2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { Edit2 } from 'lucide-react';
-
 
 export default function ClientDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [client, setClient] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const clients = getClients();
-    const found = clients.find((c: any) => c.id === params.id);
-    if (found) {
-      setClient(found);
-    }
+    fetchClient();
   }, [params.id]);
+
+  const fetchClient = async () => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      alert('You are not logged in. Please sign in first.');
+      router.push('/signin');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/clients?id=${params.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          alert('Session expired. Please sign in again.');
+          router.push('/signin');
+          return;
+        }
+        throw new Error('Failed to fetch client');
+      }
+
+      const data = await res.json();
+      setClient(data);
+    } catch (error) {
+      console.error('Error fetching client:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Delete this client?')) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('You are not logged in. Please sign in first.');
+      router.push('/signin');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/clients?id=${params.id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        alert(error.error || 'Failed to delete client');
+        return;
+      }
+
+      alert('Client deleted successfully!');
+      router.push('/dashboard/clients');
+    } catch (err) {
+      console.error('Error deleting client:', err);
+      alert('Something went wrong');
+    }
+  };
+
+  if (loading) {
+    return <p className="text-center text-slate-600 py-12">Loading...</p>;
+  }
 
   if (!client) {
     return (
@@ -31,15 +95,6 @@ export default function ClientDetailPage() {
       </div>
     );
   }
-
-  const handleDelete = () => {
-    if (confirm('Delete this client?')) {
-      const clients = getClients();
-      const updated = clients.filter((c: any) => c.id !== params.id);
-      saveClients(updated);
-      router.push('/dashboard/clients');
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -58,7 +113,10 @@ export default function ClientDetailPage() {
             <Edit2 size={18} />
             Edit
           </Link>
-          <button onClick={handleDelete} className="flex items-center gap-2 px-4 py-2.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition">
+          <button
+            onClick={handleDelete}
+            className="flex items-center gap-2 px-4 py-2.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
+          >
             <Trash2 size={18} />
             Delete
           </button>
@@ -87,7 +145,8 @@ export default function ClientDetailPage() {
                 <a href={`tel:${client.phone}`} className="text-slate-900 hover:text-blue-600">
                   {client.phone}
                 </a>
-              </div></div>
+              </div>
+            </div>
 
             <div className="flex items-start gap-3">
               <MapPin className="text-blue-500 mt-1" size={20} />

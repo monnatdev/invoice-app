@@ -17,17 +17,18 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (!stored) {
+    const token = localStorage.getItem('token');
+    if (!token) {
       router.push('/auth/signin');
     } else {
-      setUser(JSON.parse(stored));
+      // Mock user data for demonstration purposes
+      setUser({ email: 'user@example.com' });
     }
   }, [router]);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    router.push('/');
+    localStorage.removeItem('token');
+    router.push('/auth/signin');
   };
 
   if (!user) {

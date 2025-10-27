@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { Plus, Trash2, Edit2, Search, Filter } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { getInvoices, saveInvoices } from '@/lib/mockData';
 import { formatCurrency, formatDate, getStatusColor, getStatusLabel } from '@/lib/formatters';
 
 export default function InvoicesPage() {
@@ -15,7 +14,13 @@ export default function InvoicesPage() {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    setInvoices(getInvoices());
+    // Fetch invoices from API
+    const fetchInvoices = async () => {
+      const response = await fetch('/api/invoices');
+      const data = await response.json();
+      setInvoices(data);
+    };
+    fetchInvoices();
   }, []);
 
   // Filter + Search Logic
@@ -45,11 +50,15 @@ export default function InvoicesPage() {
   const endIndex = startIndex + itemsPerPage;
   const currentInvoices = filteredInvoices.slice(startIndex, endIndex);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure?')) {
-      const updated = invoices.filter(i => i.id !== id);
-      setInvoices(updated);
-      saveInvoices(updated);
+      const response = await fetch(`/api/invoices/${id}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        const updated = invoices.filter(i => i.id !== id);
+        setInvoices(updated);
+      }
     }
   };
 

@@ -1,63 +1,69 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { getClients, getInvoices, saveInvoices } from '@/lib/mockData';
 import TemplateSelector from '@/components/common/TemplateSelector';
 import { TemplateType } from '@/lib/invoiceTemplates';
 
 export default function EditInvoicePage() {
   const router = useRouter();
   const params = useParams();
-  const clients = getClients();
-  const [loading, setLoading] = useState(true);
+  const [clients, setClients] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     clientId: '',
     dueDate: '',
     items: [{ description: '', quantity: 1, rate: 0 }],
   });
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('modern');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const invoices = getInvoices();
-    const invoice = invoices.find((i: any) => i.id === params.id);
-    if (invoice) {
+    const fetchData = async () => {
+      const [clientsResponse, invoiceResponse] = await Promise.all([
+        fetch('/api/clients'),
+        fetch(`/api/invoices/${params.id}`),
+      ]);
+
+      const clientsData = await clientsResponse.json();
+      const invoiceData = await invoiceResponse.json();
+
+      setClients(clientsData);
       setFormData({
-        clientId: clients.find((c: any) => c.name === invoice.clientName)?.id || '',
-        dueDate: invoice.dueDate,
-        items: invoice.items,
+        clientId: invoiceData.clientId,
+        dueDate: invoiceData.dueDate,
+        items: invoiceData.items,
       });
-      setSelectedTemplate(invoice.template || 'modern');  // ← เพิ่มบรรทัดนี้
-    }
-    setLoading(false);
+      setSelectedTemplate(invoiceData.template || 'modern');
+      setLoading(false);
+    };
+
+    fetchData();
   }, [params.id]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const total = formData.items.reduce((sum, item) => sum + item.quantity * item.rate, 0);
-    const client = clients.find((c: any) => c.id === formData.clientId);
-    const invoices = getInvoices();
-    
-    const updatedInvoices = invoices.map((i: any) => 
-      i.id === params.id 
-        ? {
-            ...i,
-            clientName: client?.name || i.clientName,
-            amount: total,
-            dueDate: formData.dueDate,
-            items: formData.items,
-            template: selectedTemplate,  // ← เพิ่มบรรทัดนี้
-          }
-        : i
-    );
-    
-    saveInvoices(updatedInvoices);
-    alert('Invoice updated successfully!');
-    router.push(`/dashboard/invoices/${params.id}`);
+    const updatedInvoice = {
+      clientId: formData.clientId,
+      dueDate: formData.dueDate,
+      items: formData.items,
+      amount: total,
+      template: selectedTemplate,
+    };
+
+    const response = await fetch(`/api/invoices/${params.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedInvoice),
+    });
+
+    if (response.ok) {
+      alert('Invoice updated successfully!');
+      router.push(`/dashboard/invoices/${params.id}`);
+    }
   };
 
   const handleItemChange = (index: number, field: string, value: any) => {

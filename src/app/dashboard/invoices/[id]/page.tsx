@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Trash2, Download } from 'lucide-react';
-import { getInvoices, saveInvoices } from '@/lib/mockData';
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/formatters';
 import { useState, useEffect } from 'react';
 import { generatePDF } from '@/lib/pdfGenerator';
@@ -12,8 +11,6 @@ import { Mail } from 'lucide-react';
 import EmailModal from '@/components/common/EmailModal';
 import { Eye } from 'lucide-react';
 import TemplatePreviewModal from '@/components/common/TemplatePreviewModal';
-import { TemplateType } from '@/lib/invoiceTemplates';
-
 
 export default function InvoiceDetailPage() {
   const params = useParams();
@@ -24,12 +21,13 @@ export default function InvoiceDetailPage() {
   const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
-    const invoices = getInvoices();
-    const found = invoices.find((i: any) => i.id === params.id);
-    if (found) {
-      setInvoice(found);
-      setStatus(found.status);
-    }
+    const fetchInvoice = async () => {
+      const response = await fetch(`/api/invoices/${params.id}`);
+      const data = await response.json();
+      setInvoice(data);
+      setStatus(data.status);
+    };
+    fetchInvoice();
   }, [params.id]);
 
   if (!invoice) {
@@ -43,23 +41,28 @@ export default function InvoiceDetailPage() {
     );
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (confirm('Delete this invoice?')) {
-      const invoices = getInvoices();
-      const updated = invoices.filter((i: any) => i.id !== params.id);
-      saveInvoices(updated);
-      router.push('/dashboard/invoices');
+      const response = await fetch(`/api/invoices/${params.id}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        router.push('/dashboard/invoices');
+      }
     }
   };
 
-  const handleStatusChange = (newStatus: string) => {
+  const handleStatusChange = async (newStatus: string) => {
     setStatus(newStatus);
-    const invoices = getInvoices();
-    const updated = invoices.map((i: any) => 
-      i.id === params.id ? { ...i, status: newStatus } : i
-    );
-    saveInvoices(updated);
-    setInvoice({ ...invoice, status: newStatus });
+    const response = await fetch(`/api/invoices/${params.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    });
+
+    if (response.ok) {
+      setInvoice({ ...invoice, status: newStatus });
+    }
   };
 
   return (
